@@ -1,0 +1,290 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ============================================
+// User & Authentication
+// ============================================
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  phone     String?
+  role      Role     @default(USER)
+  avatar    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders       Order[]
+  bookings     StudioBooking[]
+  testimonials Testimonial[]
+
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  SUPERUSER
+  USER
+}
+
+// ============================================
+// Equipment / Camera Rental
+// ============================================
+
+model Category {
+  id        String      @id @default(cuid())
+  name      String      @unique
+  slug      String      @unique
+  createdAt DateTime    @default(now())
+  equipment Equipment[]
+
+  @@map("categories")
+}
+
+model Equipment {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  brand       String
+  type        String   // Camera, Lens, Lighting, Accessory
+  specs       String?  @db.Text
+  pricePerDay Int      // in IDR
+  stock       Int      @default(1)
+  available   Int      @default(1)
+  image       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  orderItems OrderItem[]
+
+  @@map("equipment")
+}
+
+// ============================================
+// Studio
+// ============================================
+
+model Studio {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  pricePerHour Int     // in IDR
+  capacity    Int      @default(10)
+  facilities  String?  @db.Text // JSON string of facilities
+  image       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings StudioBooking[]
+
+  @@map("studios")
+}
+
+model StudioBooking {
+  id        String        @id @default(cuid())
+  date      DateTime
+  startTime String        // e.g. "09:00"
+  endTime   String        // e.g. "13:00"
+  duration  Int           // in hours
+  totalPrice Int
+  status    BookingStatus @default(PENDING)
+  notes     String?       @db.Text
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  studioId String
+  studio   Studio @relation(fields: [studioId], references: [id])
+
+  @@map("studio_bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_USE
+  COMPLETED
+  CANCELLED
+}
+
+// ============================================
+// Photography Service
+// ============================================
+
+model Service {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  category    String   // Wedding, Prewedding, Product, Fashion, Event, Portrait
+  priceStart  Int      // starting price in IDR
+  duration    String?  // e.g. "4-6 jam"
+  includes    String?  @db.Text // JSON string of what's included
+  image       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems OrderItem[]
+
+  @@map("services")
+}
+
+// ============================================
+// Orders
+// ============================================
+
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique
+  totalAmount Int
+  status      OrderStatus @default(PENDING)
+  notes       String?     @db.Text
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  items    OrderItem[]
+  payments Payment[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id       String @id @default(cuid())
+  quantity Int    @default(1)
+  duration Int    @default(1) // days for equipment, sessions for service
+  price    Int
+  subtotal Int
+
+  orderId     String
+  order       Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  equipmentId String?
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
+  serviceId   String?
+  service     Service?   @relation(fields: [serviceId], references: [id])
+
+  @@map("order_items")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+// ============================================
+// Payment
+// ============================================
+
+model Payment {
+  id            String        @id @default(cuid())
+  amount        Int
+  method        String        // transfer, cash, ewallet
+  status        PaymentStatus @default(PENDING)
+  proofImage    String?
+  confirmedAt   DateTime?
+  confirmedById String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  REFUNDED
+}
+
+// ============================================
+// Testimonial
+// ============================================
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  text      String   @db.Text
+  rating    Int      @default(5)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("testimonials")
+}
+
+// ============================================
+// Portfolio
+// ============================================
+
+model Portfolio {
+  id        String   @id @default(cuid())
+  title     String
+  category  String   // Wedding, Product, Fashion, Portrait, Event
+  image     String
+  description String? @db.Text
+  isFeatured Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("portfolios")
+}
+
+// ============================================
+// Contact Messages
+// ============================================
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  service   String?  // what service they're interested in
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("contact_messages")
+}
+
+// ============================================
+// Site Settings
+// ============================================
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String @db.Text
+
+  @@map("settings")
+}
