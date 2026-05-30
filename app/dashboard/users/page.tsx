@@ -73,9 +73,13 @@ export default function UsersPage() {
                 <tr key={u.id} className={`transition-colors bg-white ${u.isActive === false ? "opacity-50 grayscale bg-slate-50" : "hover:bg-slate-50/50"}`}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 text-sm ${u.isActive === false ? 'bg-slate-200 text-slate-500' : 'bg-blue-100 text-blue-600'}`}>
-                        {u.name.charAt(0)}
-                      </div>
+                      {u.avatar ? (
+                        <img src={u.avatar} alt={u.name} className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0" />
+                      ) : (
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 text-sm ${u.isActive === false ? 'bg-slate-200 text-slate-500' : 'bg-blue-100 text-blue-600'}`}>
+                          {u.name.charAt(0)}
+                        </div>
+                      )}
                       <div>
                         <div className="text-sm font-bold text-slate-900">
                           {u.name} {u.id === user.id && <span className="text-xs font-medium text-blue-500 ml-1">(Anda)</span>}

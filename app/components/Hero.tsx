@@ -13,16 +13,16 @@ export default function Hero() {
           {/* Left Text */}
           <div className="lg:w-1/2">
             <Reveal direction="up" delay={0}>
-              <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-white border border-blue-100 shadow-sm text-blue-600 text-sm font-semibold mb-6">
-                <span className="flex w-2 h-2 rounded-full bg-blue-500 mr-2 animate-pulse"></span>
-                Studio Fotografi Terbaik di Jakarta
+              <div className="inline-flex items-center px-4 py-2 bg-white border border-neutral-200 shadow-xs text-neutral-800 text-xs font-mono uppercase tracking-widest mb-8">
+                <span className="flex w-1.5 h-1.5 rounded-full bg-orange-600 mr-2.5 animate-pulse"></span>
+                Studio Fotografi &amp; Rental Alat • Jakarta
               </div>
             </Reveal>
 
             <Reveal direction="up" delay={100}>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight mb-6 leading-[1.15]">
-                Tangkap momen, <br />
-                <span className="text-blue-600">lestarikan kenangan.</span>
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-light text-slate-900 tracking-tight mb-8 leading-[1.08] font-serif">
+                Tangkap <span className="italic font-bold text-orange-700">momen</span>, <br />
+                lestarikan <span className="italic font-bold">kenangan.</span>
               </h1>
             </Reveal>
 
@@ -34,11 +34,11 @@ export default function Hero() {
             
             <Reveal direction="up" delay={300}>
               <div className="flex flex-col sm:flex-row gap-4 mb-10">
-                <a href="#layanan" className="btn-primary space-x-2 text-base py-3.5 px-7">
+                <a href="/layanan" className="btn-primary space-x-2 text-sm py-3 px-6">
                   <span>Mulai Sekarang</span>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </a>
-                <a href="#portfolio" className="btn-secondary text-base py-3.5 px-7">
+                <a href="/galeri" className="btn-secondary text-sm py-3 px-6">
                   Lihat Karya
                 </a>
               </div>
@@ -48,17 +48,17 @@ export default function Hero() {
               <div className="flex items-center gap-8 border-t border-slate-200 pt-8">
                 <div>
                   <div className="text-2xl font-bold text-slate-900">500+</div>
-                  <div className="text-sm font-medium text-slate-500 mt-1">Klien Bahagia</div>
+                  <div className="text-xs font-mono uppercase tracking-widest text-slate-500 mt-1">Klien Terpuaskan</div>
                 </div>
-                <div className="w-px h-10 bg-slate-200"></div>
+                <div className="w-px h-8 bg-slate-200"></div>
                 <div>
                   <div className="text-2xl font-bold text-slate-900">50+</div>
-                  <div className="text-sm font-medium text-slate-500 mt-1">Peralatan</div>
+                  <div className="text-xs font-mono uppercase tracking-widest text-slate-500 mt-1">Peralatan Premium</div>
                 </div>
-                <div className="w-px h-10 bg-slate-200"></div>
+                <div className="w-px h-8 bg-slate-200"></div>
                 <div>
-                  <div className="text-2xl font-bold text-slate-900">3</div>
-                  <div className="text-sm font-medium text-slate-500 mt-1">Studio Modern</div>
+                  <div className="text-2xl font-bold text-slate-900">Studio A</div>
+                  <div className="text-xs font-mono uppercase tracking-widest text-slate-500 mt-1">Studio Unggulan</div>
                 </div>
               </div>
             </Reveal>
@@ -67,26 +67,38 @@ export default function Hero() {
           {/* Right Image */}
           <div className="lg:w-1/2 relative w-full h-[400px] sm:h-[500px] lg:h-[600px]">
              <Reveal direction="left" delay={200} className="w-full h-full">
-              <div className="absolute inset-0 bg-blue-200 rounded-[2rem] transform rotate-3 scale-100 transition-transform duration-700 opacity-60"></div>
-              <div className="absolute inset-0 rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-100">
-                <Image 
-                  src="/hero.png" 
-                  alt="Fotografer Capture Studio" 
-                  fill 
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
-              </div>
-
-              {/* Floating badge */}
-              <div className="absolute bottom-10 -left-6 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 hidden sm:flex items-center gap-4 transform -rotate-2 hover:rotate-0 transition-transform duration-300">
-                <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center shrink-0">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <div className="absolute inset-0 bg-orange-100/50 transform rotate-1 scale-98 transition-transform duration-700 opacity-60"></div>
+              
+              <div className="w-full h-full relative bg-white p-3 border border-neutral-200 viewfinder-box">
+                <div className="viewfinder-corners-bottom"></div>
+                <div className="viewfinder-center text-orange-600"></div>
+                
+                {/* Viewfinder metadata overlay */}
+                <div className="absolute top-6 left-6 z-20 flex gap-4 text-[9px] font-mono tracking-widest text-white bg-black/45 backdrop-blur-xs px-2.5 py-1">
+                  <span>RAW</span>
+                  <span>ISO 100</span>
+                  <span>F/2.8</span>
                 </div>
-                <div>
-                  <div className="text-sm font-bold text-slate-900">Peralatan Ready</div>
-                  <div className="text-xs font-semibold text-slate-500">Tersedia hari ini</div>
+                <div className="absolute top-6 right-6 z-20 text-[9px] font-mono tracking-widest text-red-500 bg-black/45 backdrop-blur-xs px-2.5 py-1 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span>
+                  <span>REC</span>
+                </div>
+                <div className="absolute bottom-6 left-6 z-20 text-[9px] font-mono tracking-widest text-white bg-black/45 backdrop-blur-xs px-2.5 py-1">
+                  <span>1/250s</span>
+                </div>
+                <div className="absolute bottom-6 right-6 z-20 text-[9px] font-mono tracking-widest text-white bg-black/45 backdrop-blur-xs px-2.5 py-1">
+                  <span>AWB</span>
+                </div>
+
+                <div className="w-full h-full relative overflow-hidden bg-slate-100">
+                  <Image 
+                    src="/hero.png" 
+                    alt="Fotografer Fokus Studio" 
+                    fill 
+                    className="object-cover transition-transform duration-700 hover:scale-103"
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                  />
                 </div>
               </div>
             </Reveal>

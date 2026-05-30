@@ -14,6 +14,7 @@ export async function GET() {
       pricePerHour: st.pricePerHour,
       capacity: st.capacity,
       facilities: st.facilities ? JSON.parse(st.facilities) : [],
+      image: st.image || "",
       isActive: st.isActive,
       createdAt: st.createdAt.toISOString(),
     }));
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
         pricePerHour: data.pricePerHour,
         capacity: data.capacity,
         facilities: JSON.stringify(data.facilities || []),
+        image: data.image,
         isActive: data.isActive,
       },
     });
@@ -52,6 +54,7 @@ export async function POST(request: Request) {
       pricePerHour: created.pricePerHour,
       capacity: created.capacity,
       facilities: created.facilities ? JSON.parse(created.facilities) : [],
+      image: created.image || "",
       isActive: created.isActive,
       createdAt: created.createdAt.toISOString(),
     };

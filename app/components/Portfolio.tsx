@@ -1,47 +1,61 @@
+"use client";
 import Image from "next/image";
 import Reveal from "./Reveal";
+import { useAppData } from "../context/AppDataContext";
+import Link from "next/link";
 
-const portfolio = [
-  { src: "/portfolio-wedding.png", title: "Pernikahan Elegan", category: "Wedding" },
-  { src: "/portfolio-product.png", title: "Katalog Minimalis", category: "Produk" },
-  { src: "/portfolio-fashion.png", title: "Musim Semi 2026", category: "Fashion" },
-  { src: "/studio-rental.png", title: "Komersial Interior", category: "Arsitektur" },
+const fallbackPortfolio = [
+  { id: "fb1", image: "/portfolio-wedding.png", title: "Pernikahan Elegan", category: "Wedding" },
+  { id: "fb2", image: "/portfolio-product.png", title: "Katalog Minimalis", category: "Produk" },
+  { id: "fb3", image: "/portfolio-fashion.png", title: "Musim Semi 2026", category: "Fashion" },
+  { id: "fb4", image: "/studio-rental.png", title: "Komersial Interior", category: "Arsitektur" },
 ];
 
 export default function Portfolio() {
+  const { portfolio } = useAppData();
+  const displayItems = portfolio && portfolio.length > 0 ? portfolio : fallbackPortfolio;
+
   return (
-    <section id="portfolio" className="py-24 bg-white">
+    <section id="galeri" className="py-24 bg-white border-y border-neutral-200/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <Reveal>
           <div className="text-center mb-16 max-w-2xl mx-auto">
-            <h2 className="text-blue-600 font-semibold tracking-wide uppercase text-sm mb-3">Portfolio</h2>
-            <h3 className="text-3xl md:text-4xl font-bold text-slate-900">Karya Terbaik Kami</h3>
-            <p className="mt-4 text-slate-600 text-lg">Hasil tangkapan lensa dari momen tak terlupakan dan proyek profesional.</p>
+            <span className="text-orange-700 font-mono tracking-widest uppercase text-xs mb-3 block">GALERI KARYA</span>
+            <h2 className="text-3xl md:text-5xl font-light text-slate-900 font-serif leading-tight">
+              Karya Terbaik <span className="italic font-bold text-orange-700">Kami</span>
+            </h2>
+            <p className="mt-4 text-slate-600 text-sm max-w-md mx-auto">Hasil tangkapan lensa dari momen tak terlupakan dan proyek komersial profesional.</p>
           </div>
         </Reveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {portfolio.map((item, i) => (
-            <Reveal key={i} delay={i * 150} direction="up">
-              <div className="group relative rounded-2xl overflow-hidden aspect-square modern-card border-none shadow-md">
-                <div className="absolute inset-0 bg-slate-200">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {displayItems.slice(0, 4).map((item, i) => (
+            <Reveal key={item.id || i} delay={i * 150} direction="up">
+              <div className="group relative aspect-square bg-white border border-neutral-200 viewfinder-box p-2 cursor-pointer">
+                <div className="viewfinder-corners-bottom"></div>
+                <div className="viewfinder-center text-orange-600"></div>
+
+                <div className="w-full h-full relative overflow-hidden bg-slate-50">
                   <Image
-                    src={item.src}
+                    src={item.image}
                     alt={item.title}
                     fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   />
-                </div>
-                
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent opacity-80 group-hover:opacity-95 transition-opacity duration-300"></div>
-                
-                <div className="absolute bottom-0 left-0 w-full p-6 translate-y-3 group-hover:translate-y-0 transition-transform duration-300">
-                  <span className="inline-block px-3 py-1 bg-blue-500 text-white text-[10px] uppercase font-bold tracking-wider rounded-full shadow-sm mb-3">
-                    {item.category}
-                  </span>
-                  <h4 className="text-xl font-bold text-white tracking-tight">{item.title}</h4>
+                  
+                  {/* Subtle viewfinder marking indicators inside photo overlay */}
+                  <div className="absolute top-2 left-2 z-20 flex gap-2 text-[8px] font-mono tracking-widest text-white/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 px-1 py-0.5">
+                    <span>{`[o]`}</span>
+                  </div>
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-4">
+                    <span className="text-[9px] font-mono tracking-widest text-orange-400 uppercase">
+                      {item.category}
+                    </span>
+                    <h4 className="text-sm font-bold text-white tracking-tight font-serif italic mt-0.5">{item.title}</h4>
+                  </div>
                 </div>
               </div>
             </Reveal>
@@ -50,9 +64,9 @@ export default function Portfolio() {
 
         <Reveal delay={200}>
           <div className="mt-16 text-center">
-            <button className="btn-secondary px-8 py-3 text-base font-semibold text-slate-700 shadow-sm">
+            <Link href="/galeri" className="btn-secondary px-8 py-3 text-sm font-semibold inline-block cursor-pointer">
               Lihat Galeri Lengkap
-            </button>
+            </Link>
           </div>
         </Reveal>
       </div>

@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const savedUser = localStorage.getItem("capture_user");
+    const savedUser = localStorage.getItem("fokus_user");
     if (savedUser) setUser(JSON.parse(savedUser));
 
     // Ambil daftar users dari backend jika login (bisa dibatasi hanya Admin, tapi kita muat saja)
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       if (data.success) {
         setUser(data.user);
-        localStorage.setItem("capture_user", JSON.stringify(data.user));
+        localStorage.setItem("fokus_user", JSON.stringify(data.user));
         return { success: true, message: "Login berhasil" };
       } else {
         return { success: false, message: data.message };
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       if (data.success) {
         setUser(data.user);
-        localStorage.setItem("capture_user", JSON.stringify(data.user));
+        localStorage.setItem("fokus_user", JSON.stringify(data.user));
         return { success: true, message: "Registrasi berhasil" };
       } else {
         return { success: false, message: data.message };
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("capture_user");
+    localStorage.removeItem("fokus_user");
   };
 
   const updateUser = async (id: string, data: Partial<User>) => {
@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (user?.id === id) {
           const newUser = { ...user, ...data };
           setUser(newUser);
-          localStorage.setItem("capture_user", JSON.stringify(newUser));
+          localStorage.setItem("fokus_user", JSON.stringify(newUser));
         }
     }
   };

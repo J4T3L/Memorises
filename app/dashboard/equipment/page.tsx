@@ -9,7 +9,7 @@ const TAGS = ["", "Populer", "Premium", "Baru"];
 
 const EMPTY_FORM = {
   name: "", category: "Kamera", brand: "", description: "", specs: "",
-  pricePerDay: 0, stock: 1, available: 1, tag: "", isActive: true,
+  pricePerDay: 0, stock: 1, available: 1, tag: "", image: "", isActive: true,
 };
 
 function formatIDR(n: number) {
@@ -80,6 +80,16 @@ function EquipmentModal({ title, onClose, onSave, initial = {} }: ModalProps) {
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Spesifikasi Teknis</label>
             <textarea className="input-modern resize-none h-20" value={form.specs} onChange={e => set("specs", e.target.value)} placeholder="Masukkan spek teknis (opsional)" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5">URL / Path Foto Alat</label>
+            <input className="input-modern" value={form.image} onChange={e => set("image", e.target.value)} placeholder="Contoh: /camera-rental.png atau URL Unsplash" />
+            {form.image && (
+              <div className="mt-2.5 relative w-28 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                <img src={form.image} alt="Preview" className="w-full h-full object-cover" />
+              </div>
+            )}
           </div>
 
           <div className="grid sm:grid-cols-3 gap-5">
@@ -276,8 +286,12 @@ export default function ManageEquipmentPage() {
                 <tr key={item.id} className="hover:bg-slate-50/50 transition-colors bg-white">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-                        <svg width="18" height="18" fill="none" stroke="#3b82f6" strokeWidth="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden relative border border-slate-250">
+                        {item.image ? (
+                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <svg width="18" height="18" fill="none" stroke="#3b82f6" strokeWidth="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        )}
                       </div>
                       <div>
                         <div className="font-bold text-slate-900 text-sm">{item.name}</div>

@@ -10,7 +10,12 @@ export async function GET(request: Request) {
       orderBy: { createdAt: "desc" },
       include: {
         user: { select: { name: true } },
-        items: true,
+        items: {
+          include: {
+            equipment: { select: { name: true } },
+            service: { select: { name: true } },
+          }
+        },
       },
     };
 
@@ -20,7 +25,7 @@ export async function GET(request: Request) {
 
     const orders = (await prisma.order.findMany(queryInfo)) as any[];
 
-    const mapped = orders.map((o) => ({
+    const mappedOrders = orders.map((o) => ({
       id: o.orderNumber,
       dbId: o.id,
       user: o.user.name,
@@ -31,13 +36,99 @@ export async function GET(request: Request) {
               o.status === "COMPLETED" ? "Selesai" : 
               o.status === "CANCELLED" ? "Dibatalkan" : "Menunggu",
       date: o.createdAt.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
-      itemStr: o.items.length > 0 ? (o.items.length > 1 ? `${o.items.length} item dipesan` : "Pesanan Layanan/Sewa") : "Detail",
+      itemStr: o.items.length > 0 
+        ? (o.items.length > 1 
+            ? `${o.items.length} item dipesan` 
+            : o.items[0].equipment 
+              ? `Sewa ${o.items[0].equipment.name}` 
+              : o.items[0].service 
+                ? `Jasa ${o.items[0].service.name}` 
+                : "Pesanan Layanan/Sewa") 
+        : "Detail",
       userId: o.userId,
+      createdAt: o.createdAt,
     }));
 
-    return NextResponse.json(mapped);
+    // Retrieve StudioBookings as well to combine in history
+    const bookingsQuery: any = {
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: { select: { name: true } },
+        studio: { select: { name: true } },
+      },
+    };
+
+    if (userId) {
+      bookingsQuery.where = { userId };
+    }
+
+    const bookings = (await prisma.studioBooking.findMany(bookingsQuery)) as any[];
+
+    const mappedBookings = bookings.map((b) => ({
+      id: `STB-${b.id.slice(-8).toUpperCase()}`,
+      dbId: b.id,
+      user: b.user.name,
+      amount: "Rp " + b.totalPrice.toLocaleString("id-ID"),
+      status: b.status === "PENDING" ? "Menunggu Pembayaran" : 
+              b.status === "CONFIRMED" ? "Diproses" : 
+              b.status === "IN_USE" ? "Aktif" : 
+              b.status === "COMPLETED" ? "Selesai" : 
+              b.status === "CANCELLED" ? "Dibatalkan" : "Menunggu",
+      date: b.date.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
+      itemStr: `Sewa ${b.studio.name} (${b.duration} jam) - ${b.startTime} sd ${b.endTime}`,
+      userId: b.userId,
+      createdAt: b.createdAt,
+    }));
+
+    const combined = [...mappedOrders, ...mappedBookings].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    return NextResponse.json(combined);
   } catch (error) {
     console.error("Error fetching orders:", error);
     return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json();
+    const { userId, items, startDate, endDate, notes, totalAmount } = data;
+
+    if (!userId || !items || !items.length) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const orderNumber = "ORD-" + Date.now().toString().slice(-6) + Math.floor(10 + Math.random() * 90);
+
+    const created = await prisma.order.create({
+      data: {
+        orderNumber,
+        totalAmount,
+        notes,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
+        userId,
+        items: {
+          create: items.map((it: any) => ({
+            equipmentId: it.equipmentId || null,
+            serviceId: it.serviceId || null,
+            quantity: it.quantity || 1,
+            duration: it.duration || 1,
+            price: it.price,
+            subtotal: it.price * (it.quantity || 1) * (it.duration || 1),
+          })),
+        },
+      },
+      include: {
+        items: true,
+      },
+    });
+
+    return NextResponse.json(created, { status: 201 });
+  } catch (error) {
+    console.error("Error creating order:", error);
+    return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
   }
 }

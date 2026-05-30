@@ -17,6 +17,17 @@ async function main() {
   console.log("🌱 Seeding database...\n");
 
   // ============================================
+  // Cleanup Existing Data (Bookings, Orders, & Studios)
+  // ============================================
+  console.log("🧹 Cleaning up existing bookings, orders, and studios...");
+  await prisma.orderItem.deleteMany({});
+  await prisma.payment.deleteMany({});
+  await prisma.order.deleteMany({});
+  await prisma.studioBooking.deleteMany({});
+  await prisma.studio.deleteMany({});
+  console.log("  ✓ Cleanup complete.");
+
+  // ============================================
   // 1. Users
   // ============================================
   console.log("👥 Creating users...");
@@ -25,11 +36,11 @@ async function main() {
   const userPass = await bcrypt.hash("user123", 10);
 
   const admin = await prisma.user.upsert({
-    where: { email: "admin@capture.id" },
+    where: { email: "admin@fokus.id" },
     update: {},
     create: {
-      name: "Admin Capture",
-      email: "admin@capture.id",
+      name: "Admin Fokus",
+      email: "admin@fokus.id",
       password: adminPass,
       phone: "081234567890",
       role: "ADMIN",
@@ -37,11 +48,11 @@ async function main() {
   });
 
   const superuser = await prisma.user.upsert({
-    where: { email: "super@capture.id" },
+    where: { email: "super@fokus.id" },
     update: {},
     create: {
       name: "Super User",
-      email: "super@capture.id",
+      email: "super@fokus.id",
       password: superPass,
       phone: "081234567891",
       role: "SUPERUSER",
@@ -49,11 +60,11 @@ async function main() {
   });
 
   const user1 = await prisma.user.upsert({
-    where: { email: "user@capture.id" },
+    where: { email: "user@fokus.id" },
     update: {},
     create: {
       name: "John Doe",
-      email: "user@capture.id",
+      email: "user@fokus.id",
       password: userPass,
       phone: "081234567892",
       role: "USER",
@@ -108,7 +119,7 @@ async function main() {
     },
   });
 
-  console.log(`  ✓ ${7} users created`);
+  console.log(`  ✓ 7 users verified/created`);
 
   // ============================================
   // 2. Categories
@@ -140,45 +151,45 @@ async function main() {
   categories.forEach((c) => (catMap[c.slug] = c.id));
 
   const equipmentData = [
-    { name: "Canon EOS R5", slug: "canon-eos-r5", brand: "Canon", type: "Camera", specs: "45MP · 8K Video · IBIS · Dual Card Slots", pricePerDay: 350000, stock: 3, available: 2, categoryId: catMap["mirrorless"] },
-    { name: "Canon EOS R6 Mark II", slug: "canon-eos-r6-ii", brand: "Canon", type: "Camera", specs: "24MP · 4K60 · 40fps · IBIS", pricePerDay: 280000, stock: 4, available: 3, categoryId: catMap["mirrorless"] },
-    { name: "Sony A7 IV", slug: "sony-a7-iv", brand: "Sony", type: "Camera", specs: "33MP · 4K60 · Real-time AF Tracking", pricePerDay: 300000, stock: 5, available: 4, categoryId: catMap["mirrorless"] },
-    { name: "Sony A7S III", slug: "sony-a7s-iii", brand: "Sony", type: "Camera", specs: "12MP · 4K120 · S-Log3 · S-Cinetone", pricePerDay: 400000, stock: 2, available: 1, categoryId: catMap["mirrorless"] },
-    { name: "Sony A7R V", slug: "sony-a7r-v", brand: "Sony", type: "Camera", specs: "61MP · 8K · AI AF · IBIS", pricePerDay: 450000, stock: 2, available: 2, categoryId: catMap["mirrorless"] },
-    { name: "Nikon Z6 III", slug: "nikon-z6-iii", brand: "Nikon", type: "Camera", specs: "24MP · 4K120 · N-Log · Blackout-Free EVF", pricePerDay: 250000, stock: 3, available: 3, categoryId: catMap["mirrorless"] },
-    { name: "Fujifilm X-T5", slug: "fujifilm-xt5", brand: "Fujifilm", type: "Camera", specs: "40MP · 6.2K · Film Simulation · Compact", pricePerDay: 200000, stock: 4, available: 3, categoryId: catMap["mirrorless"] },
-    { name: "Canon EOS 5D Mark IV", slug: "canon-5d-iv", brand: "Canon", type: "Camera", specs: "30MP · 4K · Dual Pixel AF", pricePerDay: 200000, stock: 3, available: 2, categoryId: catMap["dslr"] },
-    { name: "Nikon D850", slug: "nikon-d850", brand: "Nikon", type: "Camera", specs: "45MP · 4K · 153 AF Points", pricePerDay: 250000, stock: 2, available: 2, categoryId: catMap["dslr"] },
-    { name: "Sony FE 24-70mm f/2.8 GM II", slug: "sony-fe-24-70-gm2", brand: "Sony", type: "Lens", specs: "Zoom · f/2.8 · G Master · Weather Sealed", pricePerDay: 150000, stock: 4, available: 3, categoryId: catMap["lensa"] },
-    { name: "Canon RF 70-200mm f/2.8L IS", slug: "canon-rf-70-200", brand: "Canon", type: "Lens", specs: "Telephoto · f/2.8 · L-Series · IS", pricePerDay: 175000, stock: 3, available: 2, categoryId: catMap["lensa"] },
-    { name: "Sony FE 85mm f/1.4 GM", slug: "sony-fe-85-gm", brand: "Sony", type: "Lens", specs: "Portrait · f/1.4 · G Master · Bokeh", pricePerDay: 120000, stock: 3, available: 3, categoryId: catMap["lensa"] },
-    { name: "Canon RF 50mm f/1.2L", slug: "canon-rf-50-12l", brand: "Canon", type: "Lens", specs: "Prime · f/1.2 · L-Series · Dream Lens", pricePerDay: 200000, stock: 2, available: 2, categoryId: catMap["lensa"] },
-    { name: "Sigma 35mm f/1.4 DG DN Art", slug: "sigma-35-14-art", brand: "Sigma", type: "Lens", specs: "Wide · f/1.4 · Art Series · Sharp", pricePerDay: 100000, stock: 3, available: 3, categoryId: catMap["lensa"] },
-    { name: "Godox AD600Pro", slug: "godox-ad600pro", brand: "Godox", type: "Lighting", specs: "600W · TTL · HSS · 2.4G Wireless", pricePerDay: 120000, stock: 4, available: 3, categoryId: catMap["lighting"] },
-    { name: "Profoto B10 Plus", slug: "profoto-b10-plus", brand: "Profoto", type: "Lighting", specs: "500W · AirTTL · Continuous LED", pricePerDay: 200000, stock: 2, available: 2, categoryId: catMap["lighting"] },
-    { name: "Godox SL200II", slug: "godox-sl200ii", brand: "Godox", type: "Lighting", specs: "200W LED · Bowens Mount · Silent Fan", pricePerDay: 80000, stock: 6, available: 5, categoryId: catMap["lighting"] },
-    { name: "DJI RS 3 Pro", slug: "dji-rs3-pro", brand: "DJI", type: "Stabilizer", specs: "3-Axis Gimbal · 4.5kg Payload · LiDAR", pricePerDay: 150000, stock: 3, available: 2, categoryId: catMap["stabilizer"] },
-    { name: "DJI RS 4", slug: "dji-rs4", brand: "DJI", type: "Stabilizer", specs: "3-Axis · Native Vertical · AI Tracking", pricePerDay: 180000, stock: 2, available: 2, categoryId: catMap["stabilizer"] },
-    { name: "V-Mount Battery Kit", slug: "v-mount-kit", brand: "SmallRig", type: "Accessory", specs: "150Wh × 2 · Charger · D-Tap", pricePerDay: 50000, stock: 5, available: 4, categoryId: catMap["aksesoris"] },
+    { name: "Canon EOS R5", slug: "canon-eos-r5", brand: "Canon", type: "Camera", specs: "45MP · 8K Video · IBIS · Dual Card Slots", pricePerDay: 350000, stock: 3, available: 2, image: "/camera-rental.png", categoryId: catMap["mirrorless"] },
+    { name: "Canon EOS R6 Mark II", slug: "canon-eos-r6-ii", brand: "Canon", type: "Camera", specs: "24MP · 4K60 · 40fps · IBIS", pricePerDay: 280000, stock: 4, available: 3, image: "/camera-rental.png", categoryId: catMap["mirrorless"] },
+    { name: "Sony A7 IV", slug: "sony-a7-iv", brand: "Sony", type: "Camera", specs: "33MP · 4K60 · Real-time AF Tracking", pricePerDay: 300000, stock: 5, available: 4, image: "/camera-rental.png", categoryId: catMap["mirrorless"] },
+    { name: "Sony A7S III", slug: "sony-a7s-iii", brand: "Sony", type: "Camera", specs: "12MP · 4K120 · S-Log3 · S-Cinetone", pricePerDay: 400000, stock: 2, available: 1, image: "/camera-rental.png", categoryId: catMap["mirrorless"] },
+    { name: "Sony A7R V", slug: "sony-a7r-v", brand: "Sony", type: "Camera", specs: "61MP · 8K · AI AF · IBIS", pricePerDay: 450000, stock: 2, available: 2, image: "/camera-rental.png", categoryId: catMap["mirrorless"] },
+    { name: "Nikon Z6 III", slug: "nikon-z6-iii", brand: "Nikon", type: "Camera", specs: "24MP · 4K120 · N-Log · Blackout-Free EVF", pricePerDay: 250000, stock: 3, available: 3, image: "/camera-rental.png", categoryId: catMap["mirrorless"] },
+    { name: "Fujifilm X-T5", slug: "fujifilm-xt5", brand: "Fujifilm", type: "Camera", specs: "40MP · 6.2K · Film Simulation · Compact", pricePerDay: 200000, stock: 4, available: 3, image: "/camera-rental.png", categoryId: catMap["mirrorless"] },
+    { name: "Canon EOS 5D Mark IV", slug: "canon-5d-iv", brand: "Canon", type: "Camera", specs: "30MP · 4K · Dual Pixel AF", pricePerDay: 200000, stock: 3, available: 2, image: "/camera-rental.png", categoryId: catMap["dslr"] },
+    { name: "Nikon D850", slug: "nikon-d850", brand: "Nikon", type: "Camera", specs: "45MP · 4K · 153 AF Points", pricePerDay: 250000, stock: 2, available: 2, image: "/camera-rental.png", categoryId: catMap["dslr"] },
+    { name: "Sony FE 24-70mm f/2.8 GM II", slug: "sony-fe-24-70-gm2", brand: "Sony", type: "Lens", specs: "Zoom · f/2.8 · G Master · Weather Sealed", pricePerDay: 150000, stock: 4, available: 3, image: "https://images.unsplash.com/photo-1617005082133-548c4dd27f35?w=600&q=80", categoryId: catMap["lensa"] },
+    { name: "Canon RF 70-200mm f/2.8L IS", slug: "canon-rf-70-200", brand: "Canon", type: "Lens", specs: "Telephoto · f/2.8 · L-Series · IS", pricePerDay: 175000, stock: 3, available: 2, image: "https://images.unsplash.com/photo-1617005082133-548c4dd27f35?w=600&q=80", categoryId: catMap["lensa"] },
+    { name: "Sony FE 85mm f/1.4 GM", slug: "sony-fe-85-gm", brand: "Sony", type: "Lens", specs: "Portrait · f/1.4 · G Master · Bokeh", pricePerDay: 120000, stock: 3, available: 3, image: "https://images.unsplash.com/photo-1617005082133-548c4dd27f35?w=600&q=80", categoryId: catMap["lensa"] },
+    { name: "Canon RF 50mm f/1.2L", slug: "canon-rf-50-12l", brand: "Canon", type: "Lens", specs: "Prime · f/1.2 · L-Series · Dream Lens", pricePerDay: 200000, stock: 2, available: 2, image: "https://images.unsplash.com/photo-1617005082133-548c4dd27f35?w=600&q=80", categoryId: catMap["lensa"] },
+    { name: "Sigma 35mm f/1.4 DG DN Art", slug: "sigma-35-14-art", brand: "Sigma", type: "Lens", specs: "Wide · f/1.4 · Art Series · Sharp", pricePerDay: 100000, stock: 3, available: 3, image: "https://images.unsplash.com/photo-1617005082133-548c4dd27f35?w=600&q=80", categoryId: catMap["lensa"] },
+    { name: "Godox AD600Pro", slug: "godox-ad600pro", brand: "Godox", type: "Lighting", specs: "600W · TTL · HSS · 2.4G Wireless", pricePerDay: 120000, stock: 4, available: 3, image: "https://images.unsplash.com/photo-1563206767-5b18f218e8de?w=600&q=80", categoryId: catMap["lighting"] },
+    { name: "Profoto B10 Plus", slug: "profoto-b10-plus", brand: "Profoto", type: "Lighting", specs: "500W · AirTTL · Continuous LED", pricePerDay: 200000, stock: 2, available: 2, image: "https://images.unsplash.com/photo-1563206767-5b18f218e8de?w=600&q=80", categoryId: catMap["lighting"] },
+    { name: "Godox SL200II", slug: "godox-sl200ii", brand: "Godox", type: "Lighting", specs: "200W LED · Bowens Mount · Silent Fan", pricePerDay: 80000, stock: 6, available: 5, image: "https://images.unsplash.com/photo-1563206767-5b18f218e8de?w=600&q=80", categoryId: catMap["lighting"] },
+    { name: "DJI RS 3 Pro", slug: "dji-rs3-pro", brand: "DJI", type: "Stabilizer", specs: "3-Axis Gimbal · 4.5kg Payload · LiDAR", pricePerDay: 150000, stock: 3, available: 2, image: "https://images.unsplash.com/photo-1581591524425-c7e0978865fc?w=600&q=80", categoryId: catMap["stabilizer"] },
+    { name: "DJI RS 4", slug: "dji-rs4", brand: "DJI", type: "Stabilizer", specs: "3-Axis · Native Vertical · AI Tracking", pricePerDay: 180000, stock: 2, available: 2, image: "https://images.unsplash.com/photo-1581591524425-c7e0978865fc?w=600&q=80", categoryId: catMap["stabilizer"] },
+    { name: "V-Mount Battery Kit", slug: "v-mount-kit", brand: "SmallRig", type: "Accessory", specs: "150Wh × 2 · Charger · D-Tap", pricePerDay: 50000, stock: 5, available: 4, image: "https://images.unsplash.com/photo-1621259182978-f09e5e2ae090?w=600&q=80", categoryId: catMap["aksesoris"] },
   ];
 
   for (const eq of equipmentData) {
     await prisma.equipment.upsert({
       where: { slug: eq.slug },
-      update: {},
+      update: {
+        image: eq.image,
+      },
       create: eq,
     });
   }
   console.log(`  ✓ ${equipmentData.length} equipment items created`);
 
   // ============================================
-  // 4. Studios
+  // 4. Studios (Only Studio A is kept)
   // ============================================
-  console.log("🏠 Creating studios...");
+  console.log("🏠 Creating studio (Studio A only)...");
   const studios = [
-    { name: "Studio A - White Room", slug: "studio-a", description: "Studio minimalis dengan backdrop putih, cocok untuk portrait, fashion, dan foto produk. Lantai epoxy putih glossy.", pricePerHour: 200000, capacity: 8, facilities: JSON.stringify(["Backdrop putih", "Godox SL200 ×3", "Softbox 120cm", "Ring Light 18\"", "Meja produk", "Ruang ganti"]) },
-    { name: "Studio B - Dark Room", slug: "studio-b", description: "Studio dengan tema gelap, sempurna untuk dramatic portrait, low-key photography, dan creative shoot.", pricePerHour: 250000, capacity: 10, facilities: JSON.stringify(["Backdrop hitam", "Profoto B10 ×2", "Snoot & Grid", "Smoke Machine", "LED RGB Panel", "Ruang ganti & makeup"]) },
-    { name: "Studio C - Creative Space", slug: "studio-c", description: "Studio kreatif dengan berbagai set dekorasi, natural light window, dan props beragam. Ideal untuk lifestyle & content creation.", pricePerHour: 300000, capacity: 15, facilities: JSON.stringify(["Multi-color backdrop", "Natural light window", "Props & furniture", "Godox AD600 ×2", "Softbox & Beauty Dish", "Ruang ganti + makeup", "Mini kitchen set"]) },
+    { name: "Studio A - White Room", slug: "studio-a", description: "Studio minimalis dengan backdrop putih, cocok untuk portrait, fashion, dan foto produk. Lantai epoxy putih glossy.", pricePerHour: 200000, capacity: 8, facilities: JSON.stringify(["Backdrop putih", "Godox SL200 ×3", "Softbox 120cm", "Ring Light 18\"", "Meja produk", "Ruang ganti"]), image: "/studio-rental.png" },
   ];
 
   for (const s of studios) {
@@ -215,99 +226,9 @@ async function main() {
   console.log(`  ✓ ${services.length} services created`);
 
   // ============================================
-  // 6. Sample Orders
+  // 6 & 7. Sample Orders & Studio Bookings (Dihapus/Biarkan Kosong)
   // ============================================
-  console.log("📦 Creating sample orders...");
-
-  const eq1 = await prisma.equipment.findUnique({ where: { slug: "canon-eos-r5" } });
-  const eq2 = await prisma.equipment.findUnique({ where: { slug: "sony-fe-24-70-gm2" } });
-  const svc1 = await prisma.service.findUnique({ where: { slug: "wedding-basic" } });
-
-  if (eq1 && eq2) {
-    await prisma.order.upsert({
-      where: { orderNumber: "ORD-2026-0001" },
-      update: {},
-      create: {
-        orderNumber: "ORD-2026-0001",
-        userId: user1.id,
-        totalAmount: 500000,
-        status: "ACTIVE",
-        startDate: new Date("2026-04-12"),
-        endDate: new Date("2026-04-13"),
-        items: {
-          create: [
-            { equipmentId: eq1.id, quantity: 1, duration: 1, price: 350000, subtotal: 350000 },
-            { equipmentId: eq2.id, quantity: 1, duration: 1, price: 150000, subtotal: 150000 },
-          ],
-        },
-        payments: {
-          create: { amount: 500000, method: "transfer", status: "CONFIRMED", confirmedAt: new Date() },
-        },
-      },
-    });
-  }
-
-  if (svc1) {
-    await prisma.order.upsert({
-      where: { orderNumber: "ORD-2026-0002" },
-      update: {},
-      create: {
-        orderNumber: "ORD-2026-0002",
-        userId: user2.id,
-        totalAmount: 5000000,
-        status: "CONFIRMED",
-        startDate: new Date("2026-04-20"),
-        items: {
-          create: [
-            { serviceId: svc1.id, quantity: 1, duration: 1, price: 5000000, subtotal: 5000000 },
-          ],
-        },
-        payments: {
-          create: { amount: 2500000, method: "transfer", status: "CONFIRMED", confirmedAt: new Date() },
-        },
-      },
-    });
-  }
-
-  await prisma.order.upsert({
-    where: { orderNumber: "ORD-2026-0003" },
-    update: {},
-    create: {
-      orderNumber: "ORD-2026-0003",
-      userId: user3.id,
-      totalAmount: 800000,
-      status: "COMPLETED",
-      startDate: new Date("2026-04-10"),
-      endDate: new Date("2026-04-10"),
-      items: {
-        create: [],
-      },
-      payments: {
-        create: { amount: 800000, method: "ewallet", status: "CONFIRMED", confirmedAt: new Date() },
-      },
-    },
-  });
-
-  console.log("  ✓ 3 sample orders created");
-
-  // ============================================
-  // 7. Studio Bookings
-  // ============================================
-  console.log("🗓️  Creating studio bookings...");
-  const studioA = await prisma.studio.findUnique({ where: { slug: "studio-a" } });
-  const studioB = await prisma.studio.findUnique({ where: { slug: "studio-b" } });
-
-  if (studioA) {
-    await prisma.studioBooking.create({
-      data: { userId: user1.id, studioId: studioA.id, date: new Date("2026-04-15"), startTime: "09:00", endTime: "13:00", duration: 4, totalPrice: 800000, status: "CONFIRMED" },
-    });
-  }
-  if (studioB) {
-    await prisma.studioBooking.create({
-      data: { userId: user4.id, studioId: studioB.id, date: new Date("2026-04-18"), startTime: "14:00", endTime: "18:00", duration: 4, totalPrice: 1000000, status: "PENDING" },
-    });
-  }
-  console.log("  ✓ 2 studio bookings created");
+  console.log("🗓️  Schedules & bookings left completely empty.");
 
   // ============================================
   // 8. Testimonials
@@ -364,15 +285,15 @@ async function main() {
   // ============================================
   console.log("⚙️  Creating settings...");
   const settings = [
-    { key: "site_name", value: "CAPTURE" },
+    { key: "site_name", value: "FOKUS" },
     { key: "site_description", value: "Sewa Kamera, Studio & Jasa Fotografi Profesional" },
     { key: "contact_phone", value: "+62 812-3456-7890" },
-    { key: "contact_email", value: "hello@capture.id" },
+    { key: "contact_email", value: "hello@fokus.id" },
     { key: "contact_address", value: "Jl. Fotografi No. 42, Jakarta Selatan" },
     { key: "operating_hours", value: "Senin - Sabtu, 09:00 - 21:00" },
-    { key: "instagram", value: "https://instagram.com/capture.id" },
-    { key: "tiktok", value: "https://tiktok.com/@capture.id" },
-    { key: "youtube", value: "https://youtube.com/@capture.id" },
+    { key: "instagram", value: "https://instagram.com/fokus.id" },
+    { key: "tiktok", value: "https://tiktok.com/@fokus.id" },
+    { key: "youtube", value: "https://youtube.com/@fokus.id" },
   ];
 
   for (const s of settings) {
@@ -385,10 +306,6 @@ async function main() {
   console.log(`  ✓ ${settings.length} settings created`);
 
   console.log("\n✅ Database seeded successfully!");
-  console.log("\n📋 Demo Accounts:");
-  console.log("  Admin     : admin@capture.id / admin123");
-  console.log("  Superuser : super@capture.id / super123");
-  console.log("  User      : user@capture.id  / user123");
 }
 
 main()

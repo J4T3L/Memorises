@@ -3,6 +3,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import InvoiceModal from "@/app/components/InvoiceModal";
 
 export default function OrdersPage() {
   const { user, isAuthenticated } = useAuth();
@@ -10,6 +11,8 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [payingId, setPayingId] = useState<string | null>(null);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
 
   const isAdmin = user?.role === "admin" || user?.role === "superuser";
 
@@ -81,7 +84,7 @@ export default function OrdersPage() {
           </p>
         </div>
         {!isAdmin && (
-          <Link href="/#layanan" className="btn-primary px-4 py-2 text-sm shadow-sm">Buat Pesanan Baru</Link>
+          <Link href="/dashboard/booking" className="btn-primary px-4 py-2 text-sm shadow-sm">Buat Pesanan Baru</Link>
         )}
       </div>
 
@@ -120,29 +123,41 @@ export default function OrdersPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {!isAdmin && o.status === "Menunggu Pembayaran" ? (
+                    <div className="flex flex-col items-end gap-1.5">
+                      {!isAdmin && o.status === "Menunggu Pembayaran" ? (
+                        <button
+                          onClick={() => handleSimulatePayment(o.id)}
+                          disabled={payingId === o.id}
+                          className="btn-primary py-1.5 px-3 text-xs shadow-sm shadow-blue-500/20 w-[120px] cursor-pointer"
+                        >
+                          {payingId === o.id ? "Memuat API..." : "Pay Now"}
+                        </button>
+                      ) : isAdmin ? (
+                        <select
+                          value={o.status}
+                          onChange={(e) => handleAdminUpdateStatus(o.id, e.target.value)}
+                          className="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-md focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1.5 cursor-pointer shadow-sm outline-none"
+                        >
+                          <option value="Menunggu Pembayaran">Menunggu</option>
+                          <option value="Diproses">Diproses</option>
+                          <option value="Aktif">Aktif</option>
+                          <option value="Selesai">Selesai</option>
+                          <option value="Dibatalkan">Dibatalkan</option>
+                        </select>
+                      ) : (
+                        <div className="text-sm font-bold text-slate-900">{o.amount}</div>
+                      )}
+                      
                       <button
-                        onClick={() => handleSimulatePayment(o.id)}
-                        disabled={payingId === o.id}
-                        className="btn-primary py-1.5 px-3 text-xs shadow-sm shadow-blue-500/20 w-[120px] ml-auto block"
+                        onClick={() => {
+                          setSelectedInvoiceId(o.id);
+                          setIsInvoiceOpen(true);
+                        }}
+                        className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 hover:text-orange-700 transition-colors cursor-pointer mt-1"
                       >
-                        {payingId === o.id ? "Memuat API..." : "Pay Now"}
+                        Lihat Invoice
                       </button>
-                    ) : isAdmin ? (
-                      <select
-                        value={o.status}
-                        onChange={(e) => handleAdminUpdateStatus(o.id, e.target.value)}
-                        className="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-md focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1.5 cursor-pointer shadow-sm outline-none ml-auto"
-                      >
-                        <option value="Menunggu Pembayaran">Menunggu</option>
-                        <option value="Diproses">Diproses</option>
-                        <option value="Aktif">Aktif</option>
-                        <option value="Selesai">Selesai</option>
-                        <option value="Dibatalkan">Dibatalkan</option>
-                      </select>
-                    ) : (
-                      <div className="text-sm font-bold text-slate-900">{o.amount}</div>
-                    )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -150,6 +165,15 @@ export default function OrdersPage() {
           </table>
         </div>
       </div>
+
+      <InvoiceModal
+        id={selectedInvoiceId}
+        isOpen={isInvoiceOpen}
+        onClose={() => {
+          setIsInvoiceOpen(false);
+          setSelectedInvoiceId(null);
+        }}
+      />
     </div>
   );
 }

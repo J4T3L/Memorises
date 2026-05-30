@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  /* Modern clean color variables */
-  --bg-main: #f8fafc; /* slate-50 */
+  /* Premium Art-Gallery Editorial Color Variables */
+  --bg-main: #faf9f5;      /* Ivory / Alabaster Warm White */
   --bg-white: #ffffff;
   
-  --text-main: #0f172a; /* slate-900 */
-  --text-muted: #64748b; /* slate-500 */
-  --text-light: #94a3b8; /* slate-400 */
+  --text-main: #121316;    /* Soft Obsidian / Deep Charcoal */
+  --text-muted: #575a65;   /* Warm Slate Muted */
+  --text-light: #9ba0af;   /* Light Grey */
   
-  --primary: #3b82f6; /* blue-500 */
-  --primary-hover: #2563eb; /* blue-600 */
+  --primary: #c2410c;      /* Rust Terracotta (Indie Studio Focus Accent) */
+  --primary-hover: #9a3412; /* Deeper Terracotta */
   
-  --border-light: #e2e8f0; /* slate-200 */
-  --border-hover: #cbd5e1; /* slate-300 */
+  --border-light: #e7e6df;  /* Thin Warm Alabaster border */
+  --border-hover: #bab9b0;  /* Focused border */
 }
 
 @theme inline {
@@ -21,6 +21,7 @@
   --color-foreground: var(--text-main);
   --color-primary: var(--primary);
   --font-sans: 'Inter', system-ui, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
 }
 
 * {
@@ -47,18 +48,142 @@ body {
   animation: fadeUp 0.5s ease-out forwards;
 }
 
-/* Utility Utilities */
+/* ==========================================
+   Viewfinder & Camera Focus Framing (Artistic)
+   ========================================== */
+.viewfinder-box {
+  position: relative;
+  background: var(--bg-white);
+  border: 1px solid var(--border-light);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Viewfinder Corner Markings */
+.viewfinder-box::before,
+.viewfinder-box::after,
+.viewfinder-corners-bottom::before,
+.viewfinder-corners-bottom::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: #27272a; /* Neutral-800 */
+  border-style: solid;
+  pointer-events: none;
+  z-index: 10;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Top-Left */
+.viewfinder-box::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+
+/* Top-Right */
+.viewfinder-box::after {
+  top: -1px;
+  right: -1px;
+  border-width: 2px 2px 0 0;
+}
+
+/* Bottom-Left */
+.viewfinder-corners-bottom::before {
+  bottom: -1px;
+  left: -1px;
+  border-width: 0 0 2px 2px;
+}
+
+/* Bottom-Right */
+.viewfinder-corners-bottom::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
+}
+
+/* Hover highlights focus */
+.viewfinder-box:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -10px rgba(194, 65, 12, 0.15);
+}
+
+.viewfinder-box:hover::before,
+.viewfinder-box:hover::after,
+.viewfinder-box:hover .viewfinder-corners-bottom::before,
+.viewfinder-box:hover .viewfinder-corners-bottom::after {
+  border-color: var(--primary);
+  width: 16px;
+  height: 16px;
+}
+
+/* Center viewfinder mark */
+.viewfinder-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0.15;
+  transition: opacity 0.3s ease;
+}
+
+.viewfinder-box:hover .viewfinder-center {
+  opacity: 0.45;
+  color: var(--primary);
+}
+
+.viewfinder-center::before,
+.viewfinder-center::after {
+  content: '';
+  position: absolute;
+  background: currentColor;
+}
+.viewfinder-center::before {
+  top: 5.5px;
+  left: 0;
+  width: 12px;
+  height: 1px;
+}
+.viewfinder-center::after {
+  top: 0;
+  left: 5.5px;
+  width: 1px;
+  height: 12px;
+}
+
+/* Viewfinder Overlay Info */
+.viewfinder-info {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: var(--text-light);
+  text-transform: uppercase;
+}
+
+/* ==========================================
+   Editorial Utility Classes
+   ========================================== */
+.editorial-title {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 700;
+}
+
 .modern-card {
   background-color: var(--bg-white);
   border: 1px solid var(--border-light);
-  border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+  border-radius: 4px; /* Shifting to sharp editorial lines rather than bubbly curves */
+  box-shadow: 0 4px 10px -2px rgba(18, 19, 22, 0.03);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modern-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 25px -5px rgba(18, 19, 22, 0.08);
   border-color: var(--border-hover);
 }
 
@@ -69,14 +194,17 @@ body {
   padding: 10px 24px;
   background-color: var(--primary);
   color: white;
-  font-weight: 500;
-  border-radius: 8px;
-  transition: background-color 0.2s;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 4px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 4px 0 rgba(194, 65, 12, 0.15);
+  cursor: pointer;
 }
 
 .btn-primary:hover {
   background-color: var(--primary-hover);
+  box-shadow: 0 4px 12px 0 rgba(194, 65, 12, 0.25);
 }
 
 .btn-secondary {
@@ -84,17 +212,19 @@ body {
   align-items: center;
   justify-content: center;
   padding: 10px 24px;
-  background-color: white;
+  background-color: transparent;
   color: var(--text-main);
-  font-weight: 500;
-  border: 1px solid var(--border-light);
-  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid var(--text-main);
+  border-radius: 4px;
   transition: all 0.2s;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  cursor: pointer;
 }
 
 .btn-secondary:hover {
-  background-color: #f1f5f9; /* slate-100 */
+  background-color: var(--text-main);
+  color: var(--bg-main);
 }
 
 .input-modern {
@@ -102,7 +232,7 @@ body {
   padding: 12px 16px;
   background-color: white;
   border: 1px solid var(--border-light);
-  border-radius: 8px;
+  border-radius: 4px;
   color: var(--text-main);
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -110,9 +240,62 @@ body {
 
 .input-modern:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.15);
 }
 
 .input-modern::placeholder {
   color: var(--text-light);
+}
+
+/* ==========================================
+   Print Layout Configuration
+   ========================================== */
+@media print {
+  body, html {
+    background: #ffffff !important;
+    color: #121316 !important;
+  }
+  
+  /* Hide UI elements, navigation, and sidebar */
+  aside, 
+  header, 
+  footer, 
+  nav, 
+  .print\:hidden,
+  button,
+  .whatsapp-widget-container,
+  #chat-window {
+    display: none !important;
+  }
+
+  /* Make page content cover full page height/width without offset */
+  .lg\:pl-64,
+  main,
+  .flex-1 {
+    padding: 0 !important;
+    margin: 0 !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Reset fixed position of modal for inline rendering in print */
+  .fixed {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    display: block !important;
+    box-shadow: none !important;
+    border: 0 !important;
+  }
+
+  .border, td, th {
+    border-color: #d1d5db !important;
+  }
+
+  /* Force background colors and typography styling when printing */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }

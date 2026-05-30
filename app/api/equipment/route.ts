@@ -19,6 +19,7 @@ export async function GET() {
       stock: eq.stock,
       available: eq.available,
       tag: "", // Ignore tag since it's not in Prisma schema natively
+      image: eq.image || "",
       isActive: eq.isActive,
       createdAt: eq.createdAt.toISOString(),
     }));
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
         pricePerDay: data.pricePerDay,
         stock: data.stock,
         available: data.available,
+        image: data.image,
         isActive: data.isActive,
       },
     });
@@ -64,6 +66,7 @@ export async function POST(request: Request) {
       stock: created.stock,
       available: created.available,
       tag: "",
+      image: created.image || "",
       isActive: created.isActive,
       createdAt: created.createdAt.toISOString(),
     };

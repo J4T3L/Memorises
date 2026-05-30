@@ -14,6 +14,7 @@ const EMPTY_FORM = {
   pricePerHour: 0,
   capacity: 5,
   facilities: "",   // comma-separated string in form
+  image: "",
   isActive: true,
 };
 
@@ -79,6 +80,16 @@ function StudioModal({ title, onClose, onSave, initial = {} }: ModalProps) {
             <p className="text-xs text-slate-400 mt-1">Pisahkan setiap fasilitas dengan koma (,)</p>
           </div>
 
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5">URL / Path Foto Studio</label>
+            <input className="input-modern" value={form.image} onChange={e => set("image", e.target.value)} placeholder="Contoh: /studio-rental.png atau URL Unsplash" />
+            {form.image && (
+              <div className="mt-2.5 relative w-full h-36 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                <img src={form.image} alt="Preview" className="w-full h-full object-cover" />
+              </div>
+            )}
+          </div>
+
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -129,6 +140,7 @@ export default function ManageStudiosPage() {
     pricePerHour: s.pricePerHour,
     capacity: s.capacity,
     facilities: s.facilities.join(", "),
+    image: s.image || "",
     isActive: s.isActive,
   });
 
@@ -213,8 +225,16 @@ export default function ManageStudiosPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {studios.map(studio => (
           <div key={studio.id} className={`modern-card overflow-hidden flex flex-col ${!studio.isActive ? "opacity-60" : ""}`}>
-            {/* Color bar header */}
-            <div className="h-2 bg-gradient-to-r from-blue-500 to-indigo-500" />
+            {/* Image header */}
+            <div className="h-44 w-full bg-slate-100 relative overflow-hidden shrink-0 border-b border-slate-100">
+              {studio.image ? (
+                <img src={studio.image} alt={studio.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-slate-50 text-slate-400 font-medium text-xs">
+                  Tidak ada foto
+                </div>
+              )}
+            </div>
 
             <div className="p-5 flex-1 flex flex-col">
               <div className="flex items-start justify-between mb-3">

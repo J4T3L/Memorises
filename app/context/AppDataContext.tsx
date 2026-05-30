@@ -14,6 +14,7 @@ export interface Equipment {
   stock: number;
   available: number;
   tag?: string;         // Populer | Premium | Baru | ""
+  image?: string;
   isActive: boolean;
   createdAt: string;
 }
@@ -25,6 +26,7 @@ export interface Studio {
   pricePerHour: number; // IDR
   capacity: number;
   facilities: string[]; // list of facility strings
+  image?: string;
   isActive: boolean;
   createdAt: string;
 }
@@ -39,6 +41,21 @@ export interface Service {
   includes: string[]; // list of included items
   isActive: boolean;
   createdAt: string;
+}
+
+export interface Portfolio {
+  id: string;
+  title: string;
+  category: string;   // Wedding | Product | Fashion | Portrait | Event
+  image: string;      // Image URL/path
+  description?: string | null;
+  isFeatured: boolean;
+  createdAt: string;
+}
+
+export interface CartItem {
+  equipment: Equipment;
+  quantity: number;
 }
 
 // ─── Context ─────────────────────────────────────────────────────────────────
@@ -61,6 +78,19 @@ interface AppDataContextType {
   addService: (item: Omit<Service, "id" | "createdAt">) => Promise<void>;
   updateService: (id: string, data: Partial<Service>) => Promise<void>;
   deleteService: (id: string) => Promise<void>;
+
+  // Portfolio / Galeri
+  portfolio: Portfolio[];
+  addPortfolio: (item: Omit<Portfolio, "id" | "createdAt">) => Promise<void>;
+  updatePortfolio: (id: string, data: Partial<Portfolio>) => Promise<void>;
+  deletePortfolio: (id: string) => Promise<void>;
+
+  // Cart
+  cart: CartItem[];
+  addToCart: (eq: Equipment) => void;
+  removeFromCart: (id: string) => void;
+  updateCartQty: (id: string, qty: number) => void;
+  clearCart: () => void;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -69,19 +99,23 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [studios, setStudios] = useState<Studio[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [portfolio, setPortfolio] = useState<Portfolio[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [eqRes, stRes, svRes] = await Promise.all([
+        const [eqRes, stRes, svRes, ptRes] = await Promise.all([
           fetch("/api/equipment"),
           fetch("/api/studios"),
           fetch("/api/services"),
+          fetch("/api/portfolio"),
         ]);
         if (eqRes.ok) setEquipment(await eqRes.json());
         if (stRes.ok) setStudios(await stRes.json());
         if (svRes.ok) setServices(await svRes.json());
+        if (ptRes.ok) setPortfolio(await ptRes.json());
       } catch (error) {
         console.error("Failed to load data:", error);
       } finally {
@@ -89,7 +123,56 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       }
     }
     fetchData();
+
+    // Load cart from localStorage
+    const savedCart = localStorage.getItem("fokus_cart");
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (e) {
+        console.error("Failed to parse saved cart:", e);
+      }
+    }
   }, []);
+
+  // Sync helper
+  const saveCartToStorage = (newCart: CartItem[]) => {
+    setCart(newCart);
+    localStorage.setItem("fokus_cart", JSON.stringify(newCart));
+  };
+
+  const addToCart = (eq: Equipment) => {
+    const existing = cart.find(item => item.equipment.id === eq.id);
+    if (existing) {
+      if (existing.quantity >= eq.available) return;
+      const updated = cart.map(item =>
+        item.equipment.id === eq.id ? { ...item, quantity: item.quantity + 1 } : item
+      );
+      saveCartToStorage(updated);
+    } else {
+      const updated = [...cart, { equipment: eq, quantity: 1 }];
+      saveCartToStorage(updated);
+    }
+  };
+
+  const removeFromCart = (id: string) => {
+    const updated = cart.filter(item => item.equipment.id !== id);
+    saveCartToStorage(updated);
+  };
+
+  const updateCartQty = (id: string, qty: number) => {
+    const targetItem = cart.find(item => item.equipment.id === id);
+    if (!targetItem) return;
+    const targetQty = Math.max(1, Math.min(qty, targetItem.equipment.available));
+    const updated = cart.map(item =>
+      item.equipment.id === id ? { ...item, quantity: targetQty } : item
+    );
+    saveCartToStorage(updated);
+  };
+
+  const clearCart = () => {
+    saveCartToStorage([]);
+  };
 
   // ── Equipment ──
   const addEquipment = async (item: Omit<Equipment, "id" | "createdAt">) => {
@@ -187,14 +270,50 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // ── Portfolio ──
+  const addPortfolio = async (item: Omit<Portfolio, "id" | "createdAt">) => {
+    const res = await fetch("/api/portfolio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(item),
+    });
+    if (res.ok) {
+      const created = await res.json();
+      setPortfolio(prev => [created, ...prev]);
+    }
+  };
+
+  const updatePortfolio = async (id: string, data: Partial<Portfolio>) => {
+    const res = await fetch(`/api/portfolio/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      const updatedItem = await res.json();
+      setPortfolio(prev => prev.map(p => p.id === id ? updatedItem : p));
+    }
+  };
+
+  const deletePortfolio = async (id: string) => {
+    const res = await fetch(`/api/portfolio/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setPortfolio(prev => prev.filter(p => p.id !== id));
+    }
+  };
+
   const value: AppDataContextType = mounted ? {
     equipment, addEquipment, updateEquipment, deleteEquipment,
     studios, addStudio, updateStudio, deleteStudio,
     services, addService, updateService, deleteService,
+    portfolio, addPortfolio, updatePortfolio, deletePortfolio,
+    cart, addToCart, removeFromCart, updateCartQty, clearCart,
   } : {
     equipment: [], addEquipment: async () => {}, updateEquipment: async () => {}, deleteEquipment: async () => {},
     studios: [], addStudio: async () => {}, updateStudio: async () => {}, deleteStudio: async () => {},
     services: [], addService: async () => {}, updateService: async () => {}, deleteService: async () => {},
+    portfolio: [], addPortfolio: async () => {}, updatePortfolio: async () => {}, deletePortfolio: async () => {},
+    cart: [], addToCart: () => {}, removeFromCart: () => {}, updateCartQty: () => {}, clearCart: () => {},
   };
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

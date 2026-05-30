@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import ChatWindow from "../components/ChatWindow";
 
 interface NavItem {
   label: string;
@@ -19,6 +20,16 @@ const NAV_ITEMS: NavItem[] = [
     icon: (
       <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      </svg>
+    ),
+  },
+  {
+    label: "Sewa / Booking Baru",
+    href: "/dashboard/booking",
+    roles: ["user", "admin", "superuser"],
+    icon: (
+      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14"/>
       </svg>
     ),
   },
@@ -74,6 +85,16 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
+    label: "Kelola Galeri",
+    href: "/dashboard/gallery",
+    roles: ["admin", "superuser"],
+    icon: (
+      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+    ),
+  },
+  {
     label: "Rekap Pembayaran",
     href: "/dashboard/payments",
     roles: ["admin", "superuser"],
@@ -103,6 +124,16 @@ const NAV_ITEMS: NavItem[] = [
       </svg>
     ),
   },
+  {
+    label: "Chat Pelanggan",
+    href: "/dashboard/chat",
+    roles: ["admin", "superuser"],
+    icon: (
+      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+    ),
+  },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -110,10 +141,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated) router.push("/login");
   }, [isAuthenticated, router]);
+
+  useEffect(() => {
+    if (!user || (user.role !== "admin" && user.role !== "superuser")) return;
+
+    const fetchUnread = () => {
+      fetch(`/api/chat?userId=${user.id}`)
+        .then(res => {
+          if (res.ok) return res.json();
+          throw new Error("Chat fetch failed");
+        })
+        .then(threads => {
+          if (Array.isArray(threads)) {
+            const sum = threads.reduce((acc, t) => acc + (t.unreadCount || 0), 0);
+            setUnreadChatCount(sum);
+          }
+        })
+        .catch(err => console.error(err));
+    };
+
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 10000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   if (!user) return null;
 
@@ -125,37 +180,48 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const Sidebar = () => (
-    <aside className="flex flex-col h-full bg-white border-r border-slate-200">
+    <aside className="flex flex-col h-full bg-[#FAF9F5] border-r border-[#e7e6df]">
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-slate-100">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0">C</div>
-          <span className="font-bold text-lg text-slate-900">Capture</span>
+      <div className="px-6 py-5 border-b border-[#e7e6df] bg-white">
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="w-8 h-8 border border-neutral-950 flex items-center justify-center text-neutral-950 font-bold relative font-serif italic text-sm transition-colors group-hover:border-orange-700 group-hover:text-orange-700">
+            <span className="absolute top-0 left-0 w-1 h-1 border-t border-l border-neutral-950"></span>
+            <span className="absolute top-0 right-0 w-1 h-1 border-t border-r border-neutral-950"></span>
+            <span className="absolute bottom-0 left-0 w-1 h-1 border-b border-l border-neutral-950"></span>
+            <span className="absolute bottom-0 right-0 w-1 h-1 border-b border-r border-neutral-950"></span>
+            F
+          </div>
+          <span className="font-bold text-base text-slate-900 tracking-widest font-mono uppercase transition-colors group-hover:text-orange-700">Fokus</span>
         </Link>
       </div>
 
       {/* User badge */}
-      <div className="px-4 py-4 border-b border-slate-100">
-        <div className="flex items-center gap-3 bg-slate-50 rounded-xl p-3">
-          <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 font-bold text-sm flex items-center justify-center shrink-0">
-            {user.name.charAt(0)}
-          </div>
+      <div className="px-4 py-4 border-b border-[#e7e6df]">
+        <div className="flex items-center gap-3 bg-white border border-neutral-200 p-3 rounded-none relative viewfinder-box">
+          <div className="viewfinder-corners-bottom"></div>
+          {user.avatar ? (
+            <img src={user.avatar} alt={user.name} className="w-9 h-9 border border-neutral-300 object-cover shrink-0" />
+          ) : (
+            <div className="w-9 h-9 border border-neutral-300 text-slate-800 font-serif italic font-bold text-sm flex items-center justify-center shrink-0">
+              {user.name.charAt(0)}
+            </div>
+          )}
           <div className="min-w-0">
-            <div className="text-sm font-bold text-slate-900 truncate">{user.name}</div>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-              user.role === "superuser" ? "bg-purple-100 text-purple-700" :
-              user.role === "admin" ? "bg-blue-100 text-blue-700" :
-              "bg-slate-200 text-slate-600"
+            <div className="text-xs font-bold text-slate-900 truncate font-serif italic">{user.name}</div>
+            <span className={`inline-flex items-center px-2 py-0.5 border text-[8px] font-mono font-bold uppercase tracking-widest ${
+              user.role === "superuser" ? "border-purple-300 text-purple-700" :
+              user.role === "admin" ? "border-orange-300 text-orange-700" :
+              "border-slate-300 text-slate-600"
             }`}>{user.role}</span>
           </div>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
         {user.role !== "user" && (
           <div className="px-3 mb-2">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Menu Saya</p>
+            <p className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest">Menu Saya</p>
           </div>
         )}
         {visibleItems.slice(0, 3).map(item => (
@@ -163,10 +229,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             key={item.href}
             href={item.href}
             onClick={() => setSidebarOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+            className={`flex items-center gap-3 px-3 py-2 border font-mono text-[10px] uppercase tracking-widest transition-all ${
               isActive(item.href)
-                ? "bg-blue-500 text-white shadow-sm shadow-blue-500/30"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                ? "bg-orange-700 text-white border-orange-700"
+                : "text-slate-700 border-transparent hover:bg-neutral-100 hover:text-slate-950"
             }`}
           >
             <span className={isActive(item.href) ? "text-white" : "text-slate-400"}>{item.icon}</span>
@@ -177,21 +243,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {user.role !== "user" && (
           <>
             <div className="px-3 pt-4 mb-2">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Manajemen</p>
+              <p className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest">Manajemen</p>
             </div>
             {visibleItems.slice(3).map(item => (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                className={`flex items-center justify-between px-3 py-2 border font-mono text-[10px] uppercase tracking-widest transition-all ${
                   isActive(item.href)
-                    ? "bg-blue-500 text-white shadow-sm shadow-blue-500/30"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-orange-700 text-white border-orange-700"
+                    : "text-slate-700 border-transparent hover:bg-neutral-100 hover:text-slate-950"
                 }`}
               >
-                <span className={isActive(item.href) ? "text-white" : "text-slate-400"}>{item.icon}</span>
-                {item.label}
+                <div className="flex items-center gap-3">
+                  <span className={isActive(item.href) ? "text-white" : "text-slate-400"}>{item.icon}</span>
+                  {item.label}
+                </div>
+                {item.label === "Chat Pelanggan" && unreadChatCount > 0 && (
+                  <span className={`font-bold text-[8px] w-4 h-4 flex items-center justify-center shrink-0 ${
+                    isActive(item.href) ? "bg-white text-orange-750" : "bg-orange-750 text-white"
+                  }`}>
+                    {unreadChatCount}
+                  </span>
+                )}
               </Link>
             ))}
           </>
@@ -199,16 +274,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-4 border-t border-slate-100 space-y-2">
-        <Link href="/" className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-colors">
-          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <div className="px-4 py-4 border-t border-[#e7e6df] space-y-2">
+        <Link href="/" className="flex items-center gap-2 px-3 py-2 text-[10px] font-mono uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors">
+          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           Kembali ke Beranda
         </Link>
         <button
           onClick={logout}
-          className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors"
+          className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-mono uppercase tracking-widest text-red-600 hover:text-red-700 transition-colors cursor-pointer"
         >
-          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           Logout
         </button>
       </div>
@@ -216,7 +291,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-[#FAF9F5] flex">
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex w-64 shrink-0 flex-col fixed inset-y-0 left-0 z-30">
         <Sidebar />
@@ -225,7 +300,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-40 flex">
-          <div className="fixed inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} />
+          <div className="fixed inset-0 bg-neutral-950/40" onClick={() => setSidebarOpen(false)} />
           <div className="relative z-50 w-72 flex flex-col">
             <Sidebar />
           </div>
@@ -235,16 +310,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:pl-64">
         {/* Mobile Top Bar */}
-        <header className="lg:hidden bg-white border-b border-slate-200 px-4 h-14 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+        <header className="lg:hidden bg-[#FAF9F5] border-b border-[#e7e6df] px-4 h-14 flex items-center justify-between sticky top-0 z-20">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+            className="p-2 text-slate-700"
           >
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">C</div>
-            <span className="font-bold text-slate-900">Capture</span>
+            <div className="w-7 h-7 border border-neutral-950 flex items-center justify-center text-neutral-950 font-bold relative font-serif italic text-xs">
+              <span className="absolute top-0 left-0 w-0.5 h-0.5 border-t border-l border-neutral-950"></span>
+              <span className="absolute top-0 right-0 w-0.5 h-0.5 border-t border-r border-neutral-950"></span>
+              <span className="absolute bottom-0 left-0 w-0.5 h-0.5 border-b border-l border-neutral-950"></span>
+              <span className="absolute bottom-0 right-0 w-0.5 h-0.5 border-b border-r border-neutral-950"></span>
+              F
+            </div>
+            <span className="font-bold text-slate-900 font-mono tracking-widest text-xs uppercase">Fokus</span>
           </div>
           <div className="w-8" />
         </header>
@@ -252,6 +333,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Page Content */}
         <main className="flex-1 p-6 lg:p-8">
           {children}
+          <ChatWindow />
         </main>
       </div>
     </div>

@@ -8,6 +8,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [avatar, setAvatar] = useState("");
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -15,14 +16,53 @@ export default function ProfilePage() {
     if (user) {
       setName(user.name);
       setPhone(user.phone || "");
+      setAvatar(user.avatar || "");
     }
   }, [isAuthenticated, user, router]);
 
   if (!user) return null;
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 120;
+        const MAX_HEIGHT = 120;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+        setAvatar(dataUrl);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    updateUser(user.id, { name, phone });
+    updateUser(user.id, { name, phone, avatar });
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -45,8 +85,18 @@ export default function ProfilePage() {
 
           <form onSubmit={handleSave} className="space-y-6">
             <div className="flex items-center gap-6 pb-6 border-b border-slate-100">
-              <div className="w-20 h-20 rounded-full bg-blue-100 text-blue-600 font-bold text-2xl flex items-center justify-center shadow-inner">
-                {user.name.charAt(0)}
+              <div className="relative group w-20 h-20 shrink-0">
+                {avatar ? (
+                  <img src={avatar} alt={user.name} className="w-20 h-20 rounded-full object-cover border border-slate-200" />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-blue-100 text-blue-600 font-bold text-2xl flex items-center justify-center shadow-inner">
+                    {user.name.charAt(0)}
+                  </div>
+                )}
+                <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-white text-[9px] font-mono uppercase opacity-0 group-hover:opacity-100 rounded-full cursor-pointer transition-opacity">
+                  <span>Ubah</span>
+                  <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                </label>
               </div>
               <div>
                 <div className="text-sm font-bold text-slate-900 mb-1">{user.role.toUpperCase()}</div>

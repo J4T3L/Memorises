@@ -18,7 +18,7 @@ model User {
   password  String
   phone     String?
   role      Role     @default(USER)
-  avatar    String?
+  avatar    String?  @db.LongText
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -26,6 +26,8 @@ model User {
   orders       Order[]
   bookings     StudioBooking[]
   testimonials Testimonial[]
+  sentMessages     ChatMessage[] @relation("SentMessages")
+  receivedMessages ChatMessage[] @relation("ReceivedMessages")
 
   @@map("users")
 }
@@ -287,4 +289,21 @@ model Setting {
   value String @db.Text
 
   @@map("settings")
+}
+
+// ============================================
+// Chat Messages
+// ============================================
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  content    String   @db.Text
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@map("chat_messages")
 }
